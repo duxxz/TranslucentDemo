@@ -3,16 +3,12 @@ package com.demo.translucent
 import android.content.Intent
 import android.graphics.PointF
 import android.os.Bundle
-import android.util.ArrayMap
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import com.demo.translucent.utils.createViewBitmap
+import com.demo.translucent.utils.createAnimViewBitmap
 import com.demo.translucent.widget.AssetsSVGAImageView
-import com.opensource.svgaplayer.SVGAParser
-import com.opensource.svgaplayer.SVGAVideoEntity
-import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_main)
 
+        asiMeet.openAssets("meeting_night.svga")
+//        asiMeet.setImageResource(R.drawable.ic_launcher_background)
+
         btnJump.setOnClickListener {
             it.getLocationOnScreen(flagLoc)
             val cx = flagLoc[0] + it.width / 2f
@@ -40,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         btnCapture.setOnClickListener {
             val targetView = window?.decorView ?: return@setOnClickListener
-            targetView.createViewBitmap()?.let { img ->
+            targetView.createAnimViewBitmap()?.let { img ->
                 ivPreview.setImageBitmap(img)
             }
         }
@@ -73,7 +72,5 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         Log.e("MainActivity", "onResume")
-
-        asiMeet.openAssets("meeting_night.svga")
     }
 }

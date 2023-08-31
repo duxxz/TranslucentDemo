@@ -6,6 +6,8 @@ import android.content.res.Resources
 import android.content.res.TypedArray
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.text.TextUtils
 import android.util.AttributeSet
@@ -14,7 +16,9 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.graphics.BitmapCompat
 import androidx.lifecycle.LifecycleOwner
+import com.demo.translucent.widget.AssetsSVGAImageView
 
 fun Resources.floatDp(number: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, number, this.displayMetrics)
 
@@ -83,6 +87,41 @@ fun View.createViewBitmap(): Bitmap? {
     return bitmap
 }
 
+/**
+ * 内部有AssetsSVGAImageView的截图
+ * @return
+ */
+fun View.createAnimViewBitmap(): Bitmap? {
+    if (this is AssetsSVGAImageView) {
+        return this.createViewBitmap()
+    }
+    val svgaSets = HashMap<View, Drawable?>()
+    saveSvgaView(this, svgaSets)
+    val bitmap = this.createViewBitmap()
+    restoreSvgaView(svgaSets)
+    return bitmap
+}
+
+private fun saveSvgaView(view: View, sets: HashMap<View, Drawable?>) {
+    when (view) {
+        is AssetsSVGAImageView -> {
+            sets[view] = view.background
+            view.createViewBitmap()?.let {
+                view.background = BitmapDrawable(view.resources, it)
+            }
+        }
+
+        is ViewGroup -> {
+            for (index in 0 until view.childCount) {
+                saveSvgaView(view.getChildAt(index), sets)
+            }
+        }
+    }
+}
+
+private fun restoreSvgaView(sets: HashMap<View, Drawable?>) {
+    sets.forEach { (v, bg) -> v.background = bg }
+}
 
 const val matchParent = ViewGroup.LayoutParams.MATCH_PARENT
 const val wrapContent = ViewGroup.LayoutParams.WRAP_CONTENT
