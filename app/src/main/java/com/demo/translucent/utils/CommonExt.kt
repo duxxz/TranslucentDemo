@@ -1,11 +1,20 @@
 package com.demo.translucent.utils
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Resources
+import android.content.res.TypedArray
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.net.Uri
+import android.text.TextUtils
+import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.lifecycle.LifecycleOwner
 
 fun Resources.floatDp(number: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, number, this.displayMetrics)
 
@@ -33,6 +42,47 @@ fun Context.phoneScreenHeight(): Int {
 fun Context.phoneScreenWidth(): Int {
     return screenRealSize(this).first
 }
+
+fun IntArray.parseAttrs(context: Context, attrs: AttributeSet?, parser: TypedArray.() -> Unit) {
+    attrs ?: return
+    val array = context.obtainStyledAttributes(attrs, this)
+    parser.invoke(array)
+    array.recycle()
+}
+
+fun String?.isValidUrl(): Boolean {
+    if (this.isNullOrEmpty()) {
+        return false
+    }
+    val scheme = Uri.parse(this).scheme
+    return TextUtils.equals("http", scheme) || TextUtils.equals("https", scheme) || TextUtils.equals("file", scheme)
+}
+
+fun Context.lifecycleOwner(): LifecycleOwner? {
+    var curContext: Context? = this
+    var maxDepth = 20
+    while (maxDepth-- > 0 && curContext !is LifecycleOwner) {
+        curContext = (curContext as? ContextWrapper)?.baseContext
+    }
+    return if (curContext is LifecycleOwner) {
+        curContext
+    } else {
+        null
+    }
+}
+
+/**
+ * 直接将view绘制到Canvas上
+ *
+ * @return
+ */
+fun View.createViewBitmap(): Bitmap? {
+    val bitmap = Bitmap.createBitmap(this.measuredWidth, this.measuredHeight, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    this.draw(canvas)
+    return bitmap
+}
+
 
 const val matchParent = ViewGroup.LayoutParams.MATCH_PARENT
 const val wrapContent = ViewGroup.LayoutParams.WRAP_CONTENT
